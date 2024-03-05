@@ -1,94 +1,114 @@
-import { useState } from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import {
+  Button,
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Button,
   FormGroup,
   Label,
   Input,
 } from "reactstrap";
+import PropTypes from "prop-types";
 
-function App(args) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const handlePasswordChange = (e) => {
-    setPassword(e.target.value);
+function App(props) {
+  const { className } = props;
+  const [modal, setModal] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const toggle = () => {
+    setModal(!modal);
+    // Clear form fields when closing the modal
+    setEmail("");
+    setPassword("");
   };
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
 
-    const data = {
-      email,
-      password,
-    };
+  const closeBtn = (
+    <button className="close" onClick={toggle} type="button">
+      &times;
+    </button>
+  );
 
-    try {
-      const response = await fetch('./api/auth.js', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const data = await response.json();
-      console.log('Respuesta de la API:', data);
-      // Mostrar mensaje de éxito o error al usuario
-    } catch (error) {
-      console.error('Error al enviar datos:', error);
-      // Mostrar mensaje de error al usuario
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    // Update state based on changed input field
+    if (name === "email") {
+      setEmail(value);
+    } else if (name === "password") {
+      setPassword(value);
     }
   };
+
+  const API_URL = "./api/auth";
+  const METHOD = "POST";
+
+  const submitData = async (email, password) => {
+    try {
+      const response = await axios({
+        method: METHOD,
+        url: API_URL,
+        data: {
+          email,
+          password,
+        },
+      });
+      // Manejar la respuesta exitosa aquí
+      console.log("Datos enviados correctamente:", response);
+    } catch (error) {
+      // Manejar errores de la API aquí
+      console.error("Error al enviar datos:", error);
+    }
+  };
+  const handleSubmit = () => {
+    console.log("Email:", email);
+    console.log("Password:", password);
+    submitData(email, password);
+    toggle();
+    // Add any additional logic for handling the form submission here, if needed
+    toggle(); // Close the modal after handling the submit
+  };
+
   return (
-    <>
-      <div>
-        <Button color="danger" onClick={toggle}>
-         aprietame
-        </Button>
-        <Modal
-          isOpen={modal}
-          onSubmit={handleSubmit}
-          toggle={toggle}
-          dark
-          {...args}
-        >
-          <ModalHeader toggle={toggle}>incio de sesión</ModalHeader>
-          <ModalBody>
-            <FormGroup>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                name="email"
-                value={email}
-                id=""
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </FormGroup>
-            <FormGroup>
-              <Label>Password</Label>
-              <Input
-                type="password"
-                name="password"
-                value={password}
-                id=""
-                onChange={handlePasswordChange}
-              />
-            </FormGroup>
-          </ModalBody>
-          <ModalFooter>
-            <Button color="primary"  type="sudmit" onClick={toggle}>
-              aceptar
-            </Button>{" "}
-            <Button color="danger"onClick={toggle}>
-              Cancelar
-            </Button>
-          </ModalFooter>
-        </Modal>
-      </div>
-    </>
+    <div>
+      <Button color="danger" onClick={toggle}>
+        Click Me
+      </Button>
+      <Modal isOpen={modal} toggle={toggle} className={className}>
+        <ModalHeader toggle={toggle} close={closeBtn}>
+          Login
+        </ModalHeader>
+        <ModalBody>
+          <FormGroup>
+            <Label>Email</Label>
+            <Input
+              type="email"
+              name="email"
+              value={email}
+              onChange={handleInputChange} // Link input change to function
+            />
+          </FormGroup>
+          <FormGroup>
+            <Label>Password:</Label>
+            <Input
+              type="password"
+              name="password"
+              value={password}
+              onChange={handleInputChange} // Link input change to function
+            />
+          </FormGroup>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={handleSubmit}>
+            Do Something
+          </Button>{" "}
+          <Button color="secondary" onClick={toggle}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </div>
   );
 }
 
